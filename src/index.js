@@ -3,6 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import Twit from 'twit';
 
+const log = debug('index');
+const readFile = Promise.promisify(require("fs").readFile);
 const T = new Twit({
   consumer_key:         process.env.CONSUMER_KEY,
   consumer_secret:      process.env.CONSUMER_SECRET,
@@ -11,10 +13,7 @@ const T = new Twit({
   timeout_ms:           60*1000,  // optional HTTP request timeout to apply to all requests.
 });
 
-const log = debug('index');
-const readFile = Promise.promisify(require("fs").readFile);
-
-const twitterLengtFilter =(str) => {
+const twitterLengthFilter = (str) => {
   return str.length <= 140;
 }
 
@@ -42,7 +41,6 @@ const getQuoteFromParagraph = (p) => {
 
   log('starting from the', shouldQuoteFromEndOfParagraph ? 'end' : 'beginning');
 
-
   if (!shouldQuoteFromEndOfParagraph) {
     sentences = sentences.reverse();
     log('p', p);
@@ -55,16 +53,13 @@ const getQuoteFromParagraph = (p) => {
   while (sentences.length) {
     let last = sentences.pop();
 
-    // if (!last.match(actualLettersRegex) && sentences.length) {
-
     // Include punctuation splitter thingies
     if ( shouldQuoteFromEndOfParagraph ) {
       last = sentences.pop() + last;
     } else {
       last = last + sentences.pop();
     }
-      log('last', last);
-    //}
+    log('last', last);
 
     length += last.length;
 
@@ -88,9 +83,6 @@ const getQuoteFromFile = (platoFile) => {
         const toReturn = paragraph.replace(/(\r\n|\n|\r)/gm, ' ');
         return toReturn;
       })
-
-      // Only include Twitter-length passages.
-      // .filter(twitterLengtFilter)
 
       // Only include passages with actual letters
       .filter(actualLettersFilter)
@@ -124,10 +116,9 @@ getQuoteFromFile(getRandomFile())
 .then((quote) => {
   console.log('To tweet', quote);
 
-  /*
   T.post('statuses/update', { status: quote }, function(err, data, response) {
+    log('err', err);
     log('data', data);
     log('response', response);
   });
-  */
 });
