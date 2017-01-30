@@ -1,5 +1,4 @@
-SCENE: The House of Agathon.
-
+// SCENE: The House of Agathon.
 
 Concerning the things about which you ask to be informed I believe that
 I am not ill-prepared with an answer. For the day before yesterday I
