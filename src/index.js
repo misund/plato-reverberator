@@ -5,16 +5,36 @@ import Twit from 'twit';
 
 const log = debug('index');
 const readFile = Promise.promisify(require("fs").readFile);
-const T = new Twit({
-  consumer_key:         process.env.CONSUMER_KEY,
-  consumer_secret:      process.env.CONSUMER_SECRET,
-  access_token:         process.env.ACCESS_TOKEN,
-  access_token_secret:  process.env.ACCESS_SECRET,
-  timeout_ms:           60*1000,  // optional HTTP request timeout to apply to all requests.
-});
+
+const tweet = (str) => {
+  log('To the tweeter:', str);
+
+  if (process.env.DO_TWEET !== 'true') {
+    log('Skip the actual tweeting. Add DO_TWEET="true" if you would like to proceed.');
+    return false;
+  }
+
+  const T = new Twit({
+    consumer_key:         process.env.CONSUMER_KEY,
+    consumer_secret:      process.env.CONSUMER_SECRET,
+    access_token:         process.env.ACCESS_TOKEN,
+    access_token_secret:  process.env.ACCESS_SECRET,
+    timeout_ms:           60*1000,  // optional HTTP request timeout to apply to all requests.
+  });
+
+  T.post('statuses/update', { status: str }, function(err, data, response) {
+    log('err', err);
+    log('data', data);
+    log('response', response);
+  });
+}
 
 const twitterLengthFilter = (str) => {
   return str.length <= 140;
+}
+
+const commentFilter = (str) => {
+  return str.slice(0,2) !== '//';
 }
 
 const actualLettersRegex = /[a-zA-Z]/;
@@ -73,9 +93,9 @@ const getQuoteFromParagraph = (p) => {
   return resultArr.reverse().join(' ');
 }
 
-const getQuoteFromFile = (platoFile) => {
+const getQuoteFromFile = (fileToQuote) => {
 
-  return readFile(path.resolve(__dirname, platoFile), 'UTF-8')
+  return readFile(path.resolve(__dirname, fileToQuote), 'UTF-8')
     .then((data) => {
       const paragraphs = data.split('\r\n\r\n');
 
@@ -87,6 +107,9 @@ const getQuoteFromFile = (platoFile) => {
       // Only include passages with actual letters
       .filter(actualLettersFilter)
 
+      // Skip paragraphs that are commented out with '//'
+      .filter(commentFilter)
+
       return properlySpaced;
     })
 
@@ -97,8 +120,9 @@ const getQuoteFromFile = (platoFile) => {
 
     .then(getQuoteFromParagraph)
 
+    // Retry if we didn't get a result
     .then((quote) => {
-      return quote ? quote : getQuoteFromFile(platoFile);
+      return quote ? quote : getQuoteFromFile(fileToQuote);
     })
   ;
 }
@@ -113,12 +137,4 @@ const getRandomFile = () => {
 }
 
 getQuoteFromFile(getRandomFile())
-.then((quote) => {
-  console.log('To tweet', quote);
-
-  T.post('statuses/update', { status: quote }, function(err, data, response) {
-    log('err', err);
-    log('data', data);
-    log('response', response);
-  });
-});
+.then(tweet);
