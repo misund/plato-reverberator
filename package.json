@@ -10,7 +10,9 @@
     "babel-preset-stage-0": "^6.22.0",
     "bluebird": "^3.4.7",
     "debug": "^2.6.0",
-    "twit": "^2.2.5"
+    "trailing-slash-it": "^0.2.0",
+    "twit": "^2.2.5",
+    "weighted-random-object": "^1.0.6"
   },
   "devDependencies": {},
   "scripts": {

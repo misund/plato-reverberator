@@ -1,6 +1,8 @@
 import debug from 'debug';
 import fs from 'fs';
 import path from 'path';
+import trailingSlashIt from 'trailing-slash-it';
+import weightedRandomObject from 'weighted-random-object';
 import Twit from 'twit';
 
 const log = debug('index');
@@ -127,14 +129,24 @@ const getQuoteFromFile = (fileToQuote) => {
   ;
 }
 
-const getRandomFile = () => {
+const getFileObject = (path) => {
+  const abspath = trailingSlashIt(__dirname) + path;
+
+  return {
+    path: abspath,
+    weight: fs.statSync(abspath).size,
+  };
+};
+
+const getWeigthedRandomFile = () => {
   const files = [
-    'corpus/apology.txt',
-    'corpus/the-republic.txt',
-    'corpus/symposium.txt',
+    getFileObject('corpus/apology.txt'),
+    getFileObject('corpus/the-republic.txt'),
+    getFileObject('corpus/symposium.txt'),
   ];
-  return files[Math.floor(Math.random() * files.length)];
+
+  return weightedRandomObject(files).path;
 }
 
-getQuoteFromFile(getRandomFile())
+getQuoteFromFile(getWeightedRandomFile())
 .then(tweet);
