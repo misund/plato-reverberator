@@ -135,6 +135,16 @@ const getQuoteFromFile = (fileToQuote) => {
   ;
 }
 
+/**
+ * Pick a weigthed random file, based on it's length.
+ *
+ * Example: getWeightedRandomFile(['one.txt', 'two.txt', 'three.txt']); // "/src/weighted-random-file/two.txt"
+ * Example: getWeightedRandomFile(['one.txt', 'two.txt', 'three.txt'], '/tmp/foo'); // "/tmp/foo/two.txt"
+ *
+ * @param an array of relative paths
+ * @param base directory (optional)
+ * @returns an absolute pathname as a Promise of a string
+ */
 const getWeightedRandomFile = (
   [...relativePaths],
   baseDirectory = __dirname,
