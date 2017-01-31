@@ -8,6 +8,12 @@ import Twit from 'twit';
 const log = debug('index');
 const readFile = Promise.promisify(require("fs").readFile);
 
+const corpus = [
+  'corpus/apology.txt',
+  'corpus/the-republic.txt',
+  'corpus/symposium.txt',
+];
+
 const tweet = (str) => {
   log('To the tweeter:', str);
 
@@ -129,24 +135,26 @@ const getQuoteFromFile = (fileToQuote) => {
   ;
 }
 
-const getFileObject = (path) => {
-  const abspath = trailingSlashIt(__dirname) + path;
+const getWeightedRandomFile = (
+  [...relativePaths],
+  baseDirectory = __dirname,
+) => {
+  const getWeightedFileObject = (path) => {
+    const abspath = trailingSlashIt(baseDirectory) + path;
 
-  return {
-    path: abspath,
-    weight: fs.statSync(abspath).size,
+    return {
+      path: abspath,
+      weight: fs.statSync(abspath).size,
+    };
   };
+
+  return Promise.resolve(
+    weightedRandomObject(
+      relativePaths.map(getWeightedFileObject)
+    ).path
+  );
 };
 
-const getWeigthedRandomFile = () => {
-  const files = [
-    getFileObject('corpus/apology.txt'),
-    getFileObject('corpus/the-republic.txt'),
-    getFileObject('corpus/symposium.txt'),
-  ];
-
-  return weightedRandomObject(files).path;
-}
-
-getQuoteFromFile(getWeightedRandomFile())
+getWeightedRandomFile(corpus)
+.then(getQuoteFromFile)
 .then(tweet);
